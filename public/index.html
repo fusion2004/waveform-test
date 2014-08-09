@@ -34,6 +34,12 @@
       // y.domain([d3.min(waveform.min), d3.max(waveform.max)]).rangeRound([offsetX, -offsetX]);
       y.domain([d3.min(waveform.min), d3.max(waveform.max)]).rangeRound([offsetX, -offsetX]);
 
+      var areaBlank = d3.svg.area()
+        .x(function(d, i){ return x(i); })
+        .y0(function(d, i){ return 0; })
+        .y1(function(d, i){ return 0; })
+        .interpolate("step-after");
+
       var area = d3.svg.area()
         .x(function(d, i){ return x(i) })
         .y0(function(d, i){
@@ -43,7 +49,7 @@
             case 1:
               return y(waveform.max[i-1]);
             case 2:
-              return 0;
+              return y(0);
           }
         })
         .y1(function(d, i){
@@ -53,7 +59,7 @@
             case 1:
               return y(waveform.min[i-1]) / 2;
             case 2:
-              return 0;
+              return y(0);
           }
         })
         .interpolate("step-after");
@@ -124,9 +130,12 @@
       layout.append("path")
         .datum(waveform.max)
         .attr("transform", function(){ return "translate(0, "+offsetX+")"; })
+        .attr("d", areaBlank)
+        // .attr("fill", "#c00")
+        .attr('fill', 'url(#waveGradient)')
+        .transition()
         .attr("d", area)
-        // .attr("fill", "#c00");
-        .attr('fill', 'url(#waveGradient)');
+        .duration(500);
 
       layout2.append("path")
         .datum(waveform.max)
