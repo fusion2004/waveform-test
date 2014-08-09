@@ -21,24 +21,84 @@
       var layout = d3.select('body').select("svg")
         .attr("width", "100%")
         // .attr("height", 200)
-        .style("border", "1px solid black");
+        .style("border", "1px solid black")
+        .style("background", "#424242");
       var svg = $("svg");
       var x = d3.scale.linear();
       var y = d3.scale.linear();
       var offsetX = svg.height()/2;
 
       x.domain([0, waveform.adapter.length]).range([0, svg.width()]);
+      // y.domain([d3.min(waveform.min), d3.max(waveform.max)]).rangeRound([offsetX, -offsetX]);
       y.domain([d3.min(waveform.min), d3.max(waveform.max)]).rangeRound([offsetX, -offsetX]);
 
       var area = d3.svg.area()
         .x(function(d, i){ return x(i) })
-        .y0(function(d, i){ return y(waveform.min[i]) })
-        .y1(function(d, i){ return y(d) });
+        .y0(function(d, i){
+          switch(i % 3) {
+            case 0:
+              return y(waveform.max[i]);
+            case 1:
+              return y(waveform.max[i-1]);
+            case 2:
+              return 0;
+          }
+        })
+        .y1(function(d, i){
+          switch(i % 3) {
+            case 0:
+              return 0;
+            case 1:
+              return 0;
+            case 2:
+              return 0;
+          }
+        })
+        .interpolate("step-after");
+
+      var gradient = layout.append("svg:defs")
+        .append("svg:linearGradient")
+        .attr("id", "waveGradient")
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "0%")
+        .attr("y2", "100%")
+        .attr("spreadMethod", "pad");
+
+      // OPTION NOT PLAYING
+      // gradient.append("svg:stop")
+      //     .attr("offset", "0%")
+      //     .attr("stop-color", "#ddd")
+      //     .attr("stop-opacity", 1);
+
+      // gradient.append("svg:stop")
+      //     .attr("offset", "100%")
+      //     .attr("stop-color", "#aaa")
+      //     .attr("stop-opacity", 1);
+
+      // OPTION AWESOME
+      gradient.append("svg:stop")
+          .attr("offset", "0%")
+          .attr("stop-color", "#F72B2B")
+          .attr("stop-opacity", 1);
+
+      gradient.append("svg:stop")
+          .attr("offset", "80%")
+          .attr("stop-color", "#B30000")
+          .attr("stop-opacity", 1);
+
+      gradient.append("svg:stop")
+          .attr("offset", "100%")
+          .attr("stop-color", "#B30000")
+          .attr("stop-opacity", 1);
+
 
       layout.select("path")
         .datum(waveform.max)
         .attr("transform", function(){ return "translate(0, "+offsetX+")"; })
-        .attr("d", area);
+        .attr("d", area)
+        // .attr("fill", "#c00");
+        .attr('fill', 'url(#waveGradient)');
 
     });
     xhr.send();
