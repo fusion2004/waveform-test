@@ -2,10 +2,13 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF8">
+  <style>
+  body, svg {
+    background: #424242;
+  }
+  </style>
 </head>
 <body>
-  <svg><path></path></svg>
-
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="d3.min.js"></script>
   <script src="waveform-data.min.js"></script>
@@ -18,11 +21,10 @@
     xhr.addEventListener("load", function onResponse(progressEvent){
       var waveform = WaveformData.create(progressEvent.target);
 
-      var layout = d3.select('body').select("svg")
-        .attr("width", "100%")
-        // .attr("height", 200)
-        .style("border", "1px solid black")
-        .style("background", "#424242");
+      var layout = d3.select('body').append("svg")
+        .attr("width", "100%");
+      var layout2 = d3.select('body').append("svg")
+        .attr("width", "100%");
       var svg = $("svg");
       var x = d3.scale.linear();
       var y = d3.scale.linear();
@@ -47,16 +49,18 @@
         .y1(function(d, i){
           switch(i % 3) {
             case 0:
-              return 0;
+              return y(waveform.min[i]) / 2;
             case 1:
-              return 0;
+              return y(waveform.min[i-1]) / 2;
             case 2:
               return 0;
           }
         })
         .interpolate("step-after");
 
-      var gradient = layout.append("svg:defs")
+      var defs = layout.append("svg:defs")
+
+      var gradient = defs
         .append("svg:linearGradient")
         .attr("id", "waveGradient")
         .attr("x1", "0%")
@@ -65,16 +69,35 @@
         .attr("y2", "100%")
         .attr("spreadMethod", "pad");
 
-      // OPTION NOT PLAYING
-      // gradient.append("svg:stop")
-      //     .attr("offset", "0%")
-      //     .attr("stop-color", "#ddd")
-      //     .attr("stop-opacity", 1);
+      var grayGradient = defs
+        .append("svg:linearGradient")
+        .attr("id", "grayGradient")
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "0%")
+        .attr("y2", "100%")
+        .attr("spreadMethod", "pad");
 
-      // gradient.append("svg:stop")
-      //     .attr("offset", "100%")
-      //     .attr("stop-color", "#aaa")
-      //     .attr("stop-opacity", 1);
+      // OPTION NOT PLAYING
+      grayGradient.append("svg:stop")
+          .attr("offset", "0%")
+          .attr("stop-color", "#ddd")
+          .attr("stop-opacity", 1);
+
+      grayGradient.append("svg:stop")
+          .attr("offset", "65%")
+          .attr("stop-color", "#aaa")
+          .attr("stop-opacity", 1);
+
+      grayGradient.append("svg:stop")
+          .attr("offset", "66%")
+          .attr("stop-color", "#aaa")
+          .attr("stop-opacity", 0.75);
+
+      grayGradient.append("svg:stop")
+          .attr("offset", "100%")
+          .attr("stop-color", "#aaa")
+          .attr("stop-opacity", 0.33);
 
       // OPTION AWESOME
       gradient.append("svg:stop")
@@ -83,22 +106,34 @@
           .attr("stop-opacity", 1);
 
       gradient.append("svg:stop")
-          .attr("offset", "80%")
+          .attr("offset", "65%")
           .attr("stop-color", "#B30000")
           .attr("stop-opacity", 1);
 
       gradient.append("svg:stop")
+          .attr("offset", "66%")
+          .attr("stop-color", "#B30000")
+          .attr("stop-opacity", 0.75);
+
+      gradient.append("svg:stop")
           .attr("offset", "100%")
           .attr("stop-color", "#B30000")
-          .attr("stop-opacity", 1);
+          .attr("stop-opacity", 0.33);
 
 
-      layout.select("path")
+      layout.append("path")
         .datum(waveform.max)
         .attr("transform", function(){ return "translate(0, "+offsetX+")"; })
         .attr("d", area)
         // .attr("fill", "#c00");
         .attr('fill', 'url(#waveGradient)');
+
+      layout2.append("path")
+        .datum(waveform.max)
+        .attr("transform", function(){ return "translate(0, "+offsetX+")"; })
+        .attr("d", area)
+        // .attr("fill", "#c00");
+        .attr('fill', 'url(#grayGradient)');
 
     });
     xhr.send();
